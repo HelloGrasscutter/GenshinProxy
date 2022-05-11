@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Genshin Impact Proxy</string>
+    <string name="CustomServer">Custom server</string>
+    <string name="OfficialServer">Official server</string>
+    <string name="SelectServer">Select server</string>
+    <string name="Tips">For the first time, please enter the server address and enter the official server to download resources. Then you can enter the private server.\nForced mode: Forced replacement of all domain names\n\nInput server address: </string>
+    <string name="ForcedMode">Forced mode (restart required)</string>
+    <string name="ServerAddressError">Server address error.</string>
 </resources>
