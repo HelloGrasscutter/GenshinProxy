@@ -7,7 +7,7 @@ android {
     compileSdk 32
 
     defaultConfig {
-        applicationId "xfk233.workwx"
+        applicationId "xfk233.genshinproxy"
         minSdk 27
         targetSdk 32
         versionCode 1
