@@ -45,13 +45,18 @@ jobs:
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_STORE_PASSWORD }}
 
+
+      - name: Download Genshin
+        if: success()
+        id: download_genshin
+        run: |
+          wget https://projecta-common-1258344701.cos.ap-singapore.myqcloud.com/apkpure_upload_20220331/genshin-impact.apk
+
       - name: Lspatch
         if: success()
         id: lspatch
         run: |
-          cd data
-          wget https://projecta-common-1258344701.cos.ap-singapore.myqcloud.com/apkpure_upload_20220331/genshin-impact.apk
-          java -jar lspatch.jar genshin-impact.apk -m ${{ steps.sign_release.outputs.signedReleaseFile }} -k ../app/build/outputs/apk/release/signingKey.jks ${{ secrets.KEY_STORE_PASSWORD }} key0 ${{ secrets.KEY_STORE_PASSWORD }}
+          java -jar lspatch.jar genshin-impact.apk -m ${{ steps.sign_release.outputs.signedReleaseFile }} -k ./app/build/outputs/apk/release/signingKey.jks ${{ secrets.KEY_STORE_PASSWORD }} key0 ${{ secrets.KEY_STORE_PASSWORD }}
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v2
