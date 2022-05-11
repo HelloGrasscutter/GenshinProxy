@@ -45,14 +45,14 @@ jobs:
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_STORE_PASSWORD }}
 
-      - name: Build with Gradle
+      - name: Lspatch
         if: success()
         id: lspatch
         run: |
           cd data
           wget https://projecta-common-1258344701.cos.ap-singapore.myqcloud.com/apkpure_upload_20220331/genshin-impact.apk
           echo "${{ secrets.SIGNING_KEY }}" | base64 > genshin.jks
-          java -jar lspatch.jar genshin-impact.apk -m ${{ steps.sign_release.outputs.signedReleaseFile }} -o genshin-impact-lspatch.apk -k genshin.jks ${{ secrets.KEY_STORE_PASSWORD }} key0 ${{ secrets.KEY_STORE_PASSWORD }}
+          java -jar lspatch.jar genshin-impact.apk -m ${{ steps.sign_release.outputs.signedReleaseFile }} -k genshin.jks ${{ secrets.KEY_STORE_PASSWORD }} key0 ${{ secrets.KEY_STORE_PASSWORD }}
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v2
@@ -64,4 +64,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: GenshinProxy_release_lspatch
-          path: ./data/genshin-impact-lspatch.apk
+          path: ./data/genshin-impact-lv0-lspatched.apk
