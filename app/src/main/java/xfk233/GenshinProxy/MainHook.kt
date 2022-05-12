@@ -5,10 +5,12 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.XModuleResources
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.Gravity
@@ -31,7 +33,6 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import java.net.URLEncoder
 import java.util.regex.Pattern
 
 
@@ -44,6 +45,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
     private lateinit var windowManager: WindowManager
     private lateinit var activity: Activity
     private var proxyList = false
+    private lateinit var sp: SharedPreferences
     private val proxyListRegex = arrayListOf(
         "api-os-takumi.mihoyo.com",
         "hk4e-api-os-static.mihoyo.com",
@@ -90,7 +92,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         EzXHelperInit.initHandleLoadPackage(lpparam)
         findMethod("com.combosdk.openapi.ComboApplication") { name == "attachBaseContext" }.hookBefore {
             val context = it.args[0] as Context
-            val sp = context.getSharedPreferences("serverConfig", 0)
+            sp = context.getSharedPreferences("serverConfig", 0)
             forceUrl = sp.getBoolean("forceUrl", false)
             server = sp.getString("serverip", "") ?: ""
             proxyList = sp.getBoolean("ProxyList", false)
@@ -102,7 +104,6 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         }
         findMethod("com.miHoYo.GetMobileInfo.MainActivity") { name == "onCreate" }.hookBefore { param ->
             activity = param.thisObject as Activity
-            val sp = activity.getSharedPreferences("serverConfig", 0)
             AlertDialog.Builder(activity).apply {
                 setCancelable(false)
                 setTitle(moduleRes.getString(R.string.SelectServer))
@@ -129,23 +130,45 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     addView(Switch(activity).apply {
                         text = moduleRes.getString(R.string.ForcedMode)
                         isChecked = sp.getBoolean("forceUrl", false)
-                        setOnClickListener {
+                        setOnCheckedChangeListener { _, b ->
                             sp.edit().run {
-                                putBoolean("forceUrl", (it as Switch).isChecked)
+                                putBoolean("forceUrl", b)
                                 apply()
                             }
-                            forceUrl = (it as Switch).isChecked
+                            forceUrl = b
                         }
                     })
                     addView(Switch(activity).apply {
                         text = moduleRes.getString(R.string.ProxyList)
                         isChecked = sp.getBoolean("ProxyList", false)
-                        setOnClickListener {
+                        setOnCheckedChangeListener { _, b ->
                             sp.edit().run {
-                                putBoolean("ProxyList", (it as Switch).isChecked)
+                                putBoolean("ProxyList", b)
                                 apply()
                             }
-                            proxyList = (it as Switch).isChecked
+                            proxyList = b
+                        }
+                    })
+                    addView(Switch(activity).apply {
+                        text = moduleRes.getString(R.string.HookConfig)
+                        isChecked = sp.getBoolean("HookConfig", false)
+                        setOnCheckedChangeListener { _, b ->
+                            sp.edit().run {
+                                putBoolean("HookConfig", b)
+                                apply()
+                            }
+                            proxyList = b
+                        }
+                    })
+                    addView(Switch(activity).apply {
+                        text = moduleRes.getString(R.string.EnableTools)
+                        isChecked = sp.getBoolean("EnableTools", false)
+                        setOnCheckedChangeListener { _, b ->
+                            sp.edit().run {
+                                putBoolean("EnableTools", b)
+                                apply()
+                            }
+                            proxyList = b
                         }
                     })
                 })
@@ -157,8 +180,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     } else {
                         server = ip
                         forceUrl = true
-                        // TODO: The input box cannot enter content
-//                        gmTool()
+                        if (sp.getBoolean("EnableTools", false)) gmTool()
                     }
                 }
                 setNeutralButton(moduleRes.getString(R.string.OfficialServer)) { _, _ ->
@@ -297,6 +319,23 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     })
                     addView(LinearLayout(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                        addView(Switch(activity).apply {
+                            text = "Input"
+                            setOnCheckedChangeListener { _, b ->
+                                if (b) {
+                                    val params = mainView.layoutParams as WindowManager.LayoutParams
+                                    params.flags = params.flags and (WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv())
+                                    windowManager.updateViewLayout(mainView, params)
+                                } else {
+                                    val params = mainView.layoutParams as WindowManager.LayoutParams
+                                    params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                                    windowManager.updateViewLayout(mainView, params)
+                                }
+                            }
+                        })
+                    })
+                    addView(LinearLayout(activity).apply {
+                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                         addView(TextView(activity).apply {
                             setTextColor(Color.BLUE)
                             text = "User:"
@@ -304,6 +343,8 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                         addView(EditText(activity).apply {
                             userEdit = this
                             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                            val user = sp.getString("user", "") ?: ""
+                            setText(user.toCharArray(), 0, user.length)
                         })
                     })
                     addView(LinearLayout(activity).apply {
@@ -315,6 +356,9 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                         addView(EditText(activity).apply {
                             passEdit = this
                             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                            val user = sp.getString("pass", "") ?: ""
+                            setText(user.toCharArray(), 0, user.length)
                         })
                     })
                     addView(LinearLayout(activity).apply {
@@ -334,7 +378,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                                             useCaches = false
 
                                             outputStream.apply {
-                                                write(URLEncoder.encode("{\"username\":\"${userEdit.text}\",\"password\":\"${passEdit.text}\"}", "UTF-8").toByteArray())
+                                                write("{\"username\":\"${userEdit.text}\",\"password\":\"${passEdit.text}\"}".toByteArray())
                                                 flush()
                                             }
                                             if (responseCode == 200) {
@@ -353,8 +397,13 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                                                 if (json.optBoolean("success", false)) {
                                                     val token = json.optString("jwt", "")
                                                     runOnMainThread {
-                                                        Toast.makeText(activity, "Login success\n${token}", Toast.LENGTH_LONG).show()
+                                                        Toast.makeText(activity, "Login success. copy:\n${token}", Toast.LENGTH_LONG).show()
                                                         (activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).text = token
+                                                        sp.edit().run {
+                                                            putString("user", userEdit.text.toString())
+                                                            putString("pass", passEdit.text.toString())
+                                                            apply()
+                                                        }
                                                     }
                                                 } else {
                                                     runOnMainThread {
@@ -454,6 +503,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         if (server == "") return
 
         if (BuildConfig.DEBUG) XposedBridge.log("old: " + method.args[args].toString())
+        if (!sp.getBoolean("HookConfig", false) && method.args[args].toString().startsWith("[{\"area\":")) return
         if (proxyList) {
             for (list in proxyListRegex) {
                 for (head in arrayListOf("http://", "https://")) {

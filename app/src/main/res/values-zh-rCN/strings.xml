@@ -8,4 +8,6 @@
     <string name="ForcedMode">强制模式 (需重启)</string>
     <string name="ServerAddressError">服务器地址错误</string>
     <string name="ProxyList">只代理列表内的地址 (需重启)</string>
+    <string name="EnableTools">启用悬浮球工具</string>
+    <string name="HookConfig">Hook 配置文件? (需重启)</string>
 </resources>

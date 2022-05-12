@@ -7,4 +7,6 @@
     <string name="ForcedMode">Forced mode (restart required)</string>
     <string name="ServerAddressError">Server address error.</string>
     <string name="ProxyList">Only addresses in the proxy list (restart required)</string>
+    <string name="EnableTools">Enable tools</string>
+    <string name="HookConfig">Hook profile? (restart required)</string>
 </resources>
