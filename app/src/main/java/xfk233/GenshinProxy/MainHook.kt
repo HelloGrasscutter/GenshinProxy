@@ -85,6 +85,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
     override fun initZygote(startupParam: IXposedHookZygoteInit.StartupParam) {
         modulePath = startupParam.modulePath
         moduleRes = XModuleResources.createInstance(modulePath, null)
+        TrustMeAlready().initZygote(startupParam)
     }
 
     @SuppressLint("WrongConstant", "ClickableViewAccessibility")
