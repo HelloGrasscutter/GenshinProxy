@@ -3,10 +3,14 @@
     <string name="CustomServer">Custom server</string>
     <string name="OfficialServer">Official server</string>
     <string name="SelectServer">Select server</string>
-    <string name="Tips">For the first time, please enter the server address and enter the official server to download resources. Then you can enter the private server.\nForced mode: Forced replacement of all domain names\n\nInput server address: </string>
+    <string name="Tips">For the first time, please enter the server address and enter the official server to download resources. Then you can enter the private server.</string>
     <string name="ForcedMode">Forced mode (restart required)</string>
     <string name="ServerAddressError">Server address error.</string>
     <string name="ProxyList">Only addresses in the proxy list (restart required)</string>
     <string name="EnableTools">Enable tools</string>
     <string name="HookConfig">Hook profile? (restart required)</string>
+    <string name="Tips2">Forced mode: Forced replacement of all domain names\n\nInput server address: </string>
+    <string name="Back">Back</string>
+    <string name="ExitGames">Exit games</string>
+    <string name="Settings">Settings</string>
 </resources>

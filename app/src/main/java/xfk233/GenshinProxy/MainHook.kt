@@ -34,6 +34,7 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.regex.Pattern
+import kotlin.system.exitProcess
 
 
 class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
@@ -104,91 +105,109 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         }
         findMethod("com.miHoYo.GetMobileInfo.MainActivity") { name == "onCreate" }.hookBefore { param ->
             activity = param.thisObject as Activity
-            AlertDialog.Builder(activity).apply {
-                setCancelable(false)
-                setTitle(moduleRes.getString(R.string.SelectServer))
-                setMessage(moduleRes.getString(R.string.Tips))
-                setView(LinearLayout(activity).apply {
-                    orientation = LinearLayout.VERTICAL
-                    addView(EditText(activity).apply {
-                        hint = "http(s)://server.com:1234"
-                        val str = sp.getString("serverip", "") ?: ""
-                        setText(str.toCharArray(), 0, str.length)
-                        addTextChangedListener(object : TextWatcher {
-                            override fun beforeTextChanged(p0: CharSequence, p1: Int, p2: Int, p3: Int) {}
-                            override fun onTextChanged(p0: CharSequence, p1: Int, p2: Int, p3: Int) {}
+            showDialog()
+        }
+    }
 
-                            @SuppressLint("CommitPrefEdits")
-                            override fun afterTextChanged(p0: Editable) {
-                                sp.edit().run {
-                                    putString("serverip", p0.toString())
-                                    apply()
+    private fun showDialog() {
+        AlertDialog.Builder(activity).apply {
+            setCancelable(false)
+            setTitle(moduleRes.getString(R.string.SelectServer))
+            setMessage(moduleRes.getString(R.string.Tips))
+            setNegativeButton(moduleRes.getString(R.string.Settings)) {_, _ ->
+                AlertDialog.Builder(activity).apply {
+                    setMessage(moduleRes.getString(R.string.Tips2))
+                    setCancelable(false)
+                    setView(ScrollView(context).apply {
+                        addView(LinearLayout(activity).apply {
+                            orientation = LinearLayout.VERTICAL
+                            addView(EditText(activity).apply {
+                                hint = "http(s)://server.com:1234"
+                                val str = sp.getString("serverip", "") ?: ""
+                                setText(str.toCharArray(), 0, str.length)
+                                addTextChangedListener(object : TextWatcher {
+                                    override fun beforeTextChanged(p0: CharSequence, p1: Int, p2: Int, p3: Int) {}
+                                    override fun onTextChanged(p0: CharSequence, p1: Int, p2: Int, p3: Int) {}
+
+                                    @SuppressLint("CommitPrefEdits")
+                                    override fun afterTextChanged(p0: Editable) {
+                                        sp.edit().run {
+                                            putString("serverip", p0.toString())
+                                            apply()
+                                        }
+                                    }
+                                })
+                            })
+                            addView(Switch(activity).apply {
+                                text = moduleRes.getString(R.string.ForcedMode)
+                                isChecked = sp.getBoolean("forceUrl", false)
+                                setOnCheckedChangeListener { _, b ->
+                                    sp.edit().run {
+                                        putBoolean("forceUrl", b)
+                                        apply()
+                                    }
+                                    forceUrl = b
                                 }
-                            }
+                            })
+                            addView(Switch(activity).apply {
+                                text = moduleRes.getString(R.string.ProxyList)
+                                isChecked = sp.getBoolean("ProxyList", false)
+                                setOnCheckedChangeListener { _, b ->
+                                    sp.edit().run {
+                                        putBoolean("ProxyList", b)
+                                        apply()
+                                    }
+                                    proxyList = b
+                                }
+                            })
+                            addView(Switch(activity).apply {
+                                text = moduleRes.getString(R.string.HookConfig)
+                                isChecked = sp.getBoolean("HookConfig", false)
+                                setOnCheckedChangeListener { _, b ->
+                                    sp.edit().run {
+                                        putBoolean("HookConfig", b)
+                                        apply()
+                                    }
+                                    proxyList = b
+                                }
+                            })
+                            addView(Switch(activity).apply {
+                                text = moduleRes.getString(R.string.EnableTools)
+                                isChecked = sp.getBoolean("EnableTools", false)
+                                setOnCheckedChangeListener { _, b ->
+                                    sp.edit().run {
+                                        putBoolean("EnableTools", b)
+                                        apply()
+                                    }
+                                    proxyList = b
+                                }
+                            })
                         })
                     })
-                    addView(Switch(activity).apply {
-                        text = moduleRes.getString(R.string.ForcedMode)
-                        isChecked = sp.getBoolean("forceUrl", false)
-                        setOnCheckedChangeListener { _, b ->
-                            sp.edit().run {
-                                putBoolean("forceUrl", b)
-                                apply()
-                            }
-                            forceUrl = b
-                        }
-                    })
-                    addView(Switch(activity).apply {
-                        text = moduleRes.getString(R.string.ProxyList)
-                        isChecked = sp.getBoolean("ProxyList", false)
-                        setOnCheckedChangeListener { _, b ->
-                            sp.edit().run {
-                                putBoolean("ProxyList", b)
-                                apply()
-                            }
-                            proxyList = b
-                        }
-                    })
-                    addView(Switch(activity).apply {
-                        text = moduleRes.getString(R.string.HookConfig)
-                        isChecked = sp.getBoolean("HookConfig", false)
-                        setOnCheckedChangeListener { _, b ->
-                            sp.edit().run {
-                                putBoolean("HookConfig", b)
-                                apply()
-                            }
-                            proxyList = b
-                        }
-                    })
-                    addView(Switch(activity).apply {
-                        text = moduleRes.getString(R.string.EnableTools)
-                        isChecked = sp.getBoolean("EnableTools", false)
-                        setOnCheckedChangeListener { _, b ->
-                            sp.edit().run {
-                                putBoolean("EnableTools", b)
-                                apply()
-                            }
-                            proxyList = b
-                        }
-                    })
-                })
-                setPositiveButton(moduleRes.getString(R.string.CustomServer)) { _, _ ->
-                    val ip = sp.getString("serverip", "") ?: ""
-                    if (ip == "") {
-                        Toast.makeText(activity, moduleRes.getString(R.string.ServerAddressError), Toast.LENGTH_LONG).show()
-                        activity.finish()
-                    } else {
-                        server = ip
-                        forceUrl = true
-                        if (sp.getBoolean("EnableTools", false)) gmTool()
+                    setPositiveButton(moduleRes.getString(R.string.Back)) { _, _ ->
+                        showDialog()
                     }
+                    setNeutralButton(moduleRes.getString(R.string.ExitGames)) {_, _ ->
+                        exitProcess(0)
+                    }
+                }.show()
+            }
+            setPositiveButton(moduleRes.getString(R.string.CustomServer)) { _, _ ->
+                val ip = sp.getString("serverip", "") ?: ""
+                if (ip == "") {
+                    Toast.makeText(activity, moduleRes.getString(R.string.ServerAddressError), Toast.LENGTH_LONG).show()
+                    activity.finish()
+                } else {
+                    server = ip
+                    forceUrl = true
+                    if (sp.getBoolean("EnableTools", false)) gmTool()
                 }
-                setNeutralButton(moduleRes.getString(R.string.OfficialServer)) { _, _ ->
-                    forceUrl = false
-                    server = ""
-                }
-            }.show()
-        }
+            }
+            setNeutralButton(moduleRes.getString(R.string.OfficialServer)) { _, _ ->
+                forceUrl = false
+                server = ""
+            }
+        }.show()
     }
 
     inner class MoveOnTouchListener : View.OnTouchListener {
