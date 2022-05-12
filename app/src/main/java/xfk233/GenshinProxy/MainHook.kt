@@ -84,7 +84,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         "minor-api-os.hoyoverse.com",
         "log-upload-os.hoyoverse.com"
     )
-    
+
     private var socketFactory: SSLSocketFactory
     private var verifier: DefaultHostnameVerifier
 
@@ -159,6 +159,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     setMessage(moduleRes.getString(R.string.Tips2))
                     setCancelable(false)
                     setView(ScrollView(context).apply {
+                        setPadding(25, 0, 25, 0)
                         addView(LinearLayout(activity).apply {
                             orientation = LinearLayout.VERTICAL
                             addView(EditText(activity).apply {
@@ -329,10 +330,12 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                         setTextColor(Color.BLUE)
                         setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
-                        text = "Tools"
+                        text = moduleRes.getString(R.string.Tools)
                     })
                     addView(TextView(activity).apply {
-                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).also {
+                            it.setMargins(0, 0, 20, 0)
+                        }
                         setTextColor(Color.BLUE)
                         setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
                         text = "X"
@@ -351,7 +354,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                         addView(TextView(activity).apply {
                             setTextColor(Color.BLUE)
-                            text = "(Check server stats)"
+                            text = moduleRes.getString(R.string.CheckServerStatus)
                             setOnClickListener {
                                 Thread() {
                                     try {
@@ -377,17 +380,17 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                                                     response.append(line)
                                                 }
                                                 runOnMainThread {
-                                                    text = if (response.toString() == "me.exzork.gcauth.handler.GCAuthAuthenticationHandler") "Server stats: GcAuth" else "Server stats: GcAuth not install"
+                                                    text = if (response.toString() == "me.exzork.gcauth.handler.GCAuthAuthenticationHandler") moduleRes.getString(R.string.ServerStatus) + "GcAuth" else moduleRes.getString(R.string.ServerStatus) + "GcAuth" + moduleRes.getString(R.string.NotInstall)
                                                 }
                                             } else {
                                                 runOnMainThread {
-                                                    text = "Server stats: Get server stats error. "
+                                                    text = moduleRes.getString(R.string.ServerStatus) + moduleRes.getString(R.string.GetServerStatusError)
                                                 }
                                             }
                                         }
                                     } catch (e: Throwable) {
                                         runOnMainThread {
-                                            text = "Server stats: Get server stats error. $e"
+                                            text = moduleRes.getString(R.string.ServerStatus) + moduleRes.getString(R.string.GetServerStatusError) + e
                                         }
                                     }
                                 }.start()
@@ -397,7 +400,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     addView(LinearLayout(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                         addView(Switch(activity).apply {
-                            text = "Input"
+                            text = moduleRes.getString(R.string.InputSwitch)
                             setOnCheckedChangeListener { _, b ->
                                 if (b) {
                                     val params = mainView.layoutParams as WindowManager.LayoutParams
@@ -415,7 +418,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                         addView(TextView(activity).apply {
                             setTextColor(Color.BLUE)
-                            text = "User:"
+                            text = moduleRes.getString(R.string.User)
                         })
                         addView(EditText(activity).apply {
                             userEdit = this
@@ -428,7 +431,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                         addView(TextView(activity).apply {
                             setTextColor(Color.BLUE)
-                            text = "Password:"
+                            text = moduleRes.getString(R.string.Password)
                         })
                         addView(EditText(activity).apply {
                             passEdit = this
@@ -441,7 +444,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     addView(LinearLayout(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                         addView(Button(activity).apply {
-                            text = "Login"
+                            text = moduleRes.getString(R.string.Login)
                             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                             setOnClickListener {
                                 Thread() {
@@ -482,7 +485,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                                                 if (json.optBoolean("success", false)) {
                                                     val token = json.optString("jwt", "")
                                                     runOnMainThread {
-                                                        Toast.makeText(activity, "Login success. copy:\n${token}", Toast.LENGTH_LONG).show()
+                                                        Toast.makeText(activity, "${moduleRes.getString(R.string.LoginSuccess)}\n${token}", Toast.LENGTH_LONG).show()
                                                         (activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).text = token
                                                         sp.edit().run {
                                                             putString("user", userEdit.text.toString())
@@ -492,14 +495,14 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                                                     }
                                                 } else {
                                                     runOnMainThread {
-                                                        Toast.makeText(activity, "Login failed, ${json.optString("message", "")}", Toast.LENGTH_LONG).show()
+                                                        Toast.makeText(activity, moduleRes.getString(R.string.LoginFailed) + json.optString("message", ""), Toast.LENGTH_LONG).show()
                                                     }
                                                 }
                                             }
                                         }
                                     } catch (e: Throwable) {
                                         runOnMainThread {
-                                            Toast.makeText(activity, "Login error, $e", Toast.LENGTH_LONG).show()
+                                            Toast.makeText(activity, moduleRes.getString(R.string.LoginError) + e, Toast.LENGTH_LONG).show()
                                         }
                                     }
                                 }.start()

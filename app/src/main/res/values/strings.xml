@@ -14,4 +14,16 @@
     <string name="ExitGames">Exit games</string>
     <string name="Settings">Settings</string>
     <string name="KeepSSL">Skip SSL certificate check (instable) (restart required)</string>
+    <string name="CheckServerStatus">(Click Check server status)</string>
+    <string name="ServerStatus">Server status:</string>
+    <string name="NotInstall">not Install</string>
+    <string name="GetServerStatusError">Get server status error.</string>
+    <string name="InputSwitch">Input switch</string>
+    <string name="Login">Login</string>
+    <string name="User">User:</string>
+    <string name="Password">Password:</string>
+    <string name="LoginSuccess">Login success. copy token:</string>
+    <string name="LoginFailed">Login failed.</string>
+    <string name="LoginError">Login error.</string>
+    <string name="Tools">Tools</string>
 </resources>
