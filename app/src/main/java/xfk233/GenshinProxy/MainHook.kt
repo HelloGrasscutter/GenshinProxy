@@ -33,7 +33,10 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.regex.Pattern
+import javax.net.ssl.*
 import kotlin.system.exitProcess
 
 
@@ -81,6 +84,42 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         "minor-api-os.hoyoverse.com",
         "log-upload-os.hoyoverse.com"
     )
+    
+    private var socketFactory: SSLSocketFactory
+    private var verifier: DefaultHostnameVerifier
+
+    init {
+        val ctx = SSLContext.getInstance("TLS")
+        ctx.init(arrayOf<KeyManager>(), arrayOf<TrustManager>(DefaultTrustManager()), SecureRandom())
+        ctx.clientSessionContext.sessionTimeout = 15
+        ctx.clientSessionContext.sessionCacheSize = 1000
+        socketFactory = ctx.socketFactory
+        verifier = DefaultHostnameVerifier()
+    }
+
+    class DefaultHostnameVerifier : HostnameVerifier {
+        @SuppressLint("BadHostnameVerifier")
+        override fun verify(p0: String?, p1: SSLSession?): Boolean {
+            return true
+        }
+
+    }
+
+    @SuppressLint("CustomX509TrustManager")
+    private class DefaultTrustManager : X509TrustManager {
+
+        @SuppressLint("TrustAllX509TrustManager")
+        override fun checkClientTrusted(chain: Array<X509Certificate?>?, authType: String?) {
+        }
+
+        @SuppressLint("TrustAllX509TrustManager")
+        override fun checkServerTrusted(chain: Array<X509Certificate?>?, authType: String?) {
+        }
+
+        override fun getAcceptedIssuers(): Array<X509Certificate> {
+            return arrayOf()
+        }
+    }
 
     override fun initZygote(startupParam: IXposedHookZygoteInit.StartupParam) {
         modulePath = startupParam.modulePath
@@ -115,7 +154,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
             setCancelable(false)
             setTitle(moduleRes.getString(R.string.SelectServer))
             setMessage(moduleRes.getString(R.string.Tips))
-            setNegativeButton(moduleRes.getString(R.string.Settings)) {_, _ ->
+            setNegativeButton(moduleRes.getString(R.string.Settings)) { _, _ ->
                 AlertDialog.Builder(activity).apply {
                     setMessage(moduleRes.getString(R.string.Tips2))
                     setCancelable(false)
@@ -198,7 +237,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     setPositiveButton(moduleRes.getString(R.string.Back)) { _, _ ->
                         showDialog()
                     }
-                    setNeutralButton(moduleRes.getString(R.string.ExitGames)) {_, _ ->
+                    setNeutralButton(moduleRes.getString(R.string.ExitGames)) { _, _ ->
                         exitProcess(0)
                     }
                 }.show()
@@ -251,8 +290,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     val x = event.rawX
                     val y = event.rawY
 
-                    val params: WindowManager.LayoutParams =
-                        v.layoutParams as WindowManager.LayoutParams
+                    val params: WindowManager.LayoutParams = v.layoutParams as WindowManager.LayoutParams
 
                     val newX = (x - offsetX).toInt()
                     val newY = (y - offsetY).toInt()
@@ -318,12 +356,21 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                                 Thread() {
                                     try {
                                         XposedBridge.log("$server/authentication/type")
-                                        (URL("$server/authentication/type").openConnection() as HttpURLConnection).apply {
-                                            requestMethod = "GET"
-                                            readTimeout = 8000
-                                            connectTimeout = 8000
-                                            val reader = BufferedReader(InputStreamReader(inputStream))
-                                            if (responseCode == 200) {
+                                        URL("$server/authentication/type").apply {
+                                            val conn = if (server.startsWith("https")) {
+                                                (openConnection() as HttpsURLConnection).apply {
+                                                    sslSocketFactory = socketFactory
+                                                    hostnameVerifier = verifier
+                                                }
+                                            } else {
+                                                openConnection() as HttpURLConnection
+                                            }
+                                            conn.requestMethod = "GET"
+                                            conn.readTimeout = 8000
+                                            conn.connectTimeout = 8000
+
+                                            val reader = BufferedReader(InputStreamReader(conn.inputStream))
+                                            if (conn.responseCode == 200) {
                                                 val response = StringBuilder()
                                                 var line = ""
                                                 while (reader.readLine()?.also { line = it } != null) {
@@ -399,20 +446,28 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                             setOnClickListener {
                                 Thread() {
                                     try {
-                                        (URL("$server/authentication/login").openConnection() as HttpURLConnection).apply {
-                                            requestMethod = "POST"
-                                            readTimeout = 8000
-                                            connectTimeout = 8000
-                                            doOutput = true
-                                            doInput = true
-                                            useCaches = false
+                                        URL("$server/authentication/type").apply {
+                                            val conn = if (server.startsWith("https")) {
+                                                (openConnection() as HttpsURLConnection).apply {
+                                                    sslSocketFactory = socketFactory
+                                                    hostnameVerifier = verifier
+                                                }
+                                            } else {
+                                                openConnection() as HttpURLConnection
+                                            }
+                                            conn.requestMethod = "POST"
+                                            conn.readTimeout = 8000
+                                            conn.connectTimeout = 8000
+                                            conn.doOutput = true
+                                            conn.doInput = true
+                                            conn.useCaches = false
 
-                                            outputStream.apply {
+                                            conn.outputStream.apply {
                                                 write("{\"username\":\"${userEdit.text}\",\"password\":\"${passEdit.text}\"}".toByteArray())
                                                 flush()
                                             }
-                                            if (responseCode == 200) {
-                                                val input = inputStream
+                                            if (conn.responseCode == 200) {
+                                                val input = conn.inputStream
                                                 val message = ByteArrayOutputStream()
 
                                                 var len: Int
@@ -456,25 +511,13 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         }
 
         windowManager = activity.windowManager
-        windowManager.addView(mainView, WindowManager.LayoutParams(
-            dp2px(activity, 200f),
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-            PixelFormat.TRANSLUCENT
-        ).apply {
+        windowManager.addView(mainView, WindowManager.LayoutParams(dp2px(activity, 200f), WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.TYPE_APPLICATION, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT).apply {
             gravity = Gravity.START or Gravity.TOP
             x = 0
             y = 0
         })
 
-        val layoutParams = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-            PixelFormat.TRANSLUCENT
-        ).apply {
+        val layoutParams = WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_APPLICATION, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT).apply {
             gravity = Gravity.START or Gravity.TOP
             x = 0
             y = 0
