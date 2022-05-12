@@ -6,4 +6,5 @@
     <string name="Tips">For the first time, please enter the server address and enter the official server to download resources. Then you can enter the private server.\nForced mode: Forced replacement of all domain names\n\nInput server address: </string>
     <string name="ForcedMode">Forced mode (restart required)</string>
     <string name="ServerAddressError">Server address error.</string>
+    <string name="ProxyList">Only addresses in the proxy list (restart required)</string>
 </resources>
