@@ -97,8 +97,8 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
             forceUrl = sp.getBoolean("forceUrl", false)
             server = sp.getString("serverip", "") ?: ""
             proxyList = sp.getBoolean("ProxyList", false)
+            if (sp.getBoolean("KeepSSL", false)) sslHook(lpparam)
         }
-        sslHook(lpparam)
         hook()
         findMethod(Activity::class.java, true) { name == "onCreate" }.hookBefore { param ->
             activity = param.thisObject as Activity
@@ -180,6 +180,16 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                                         apply()
                                     }
                                     proxyList = b
+                                }
+                            })
+                            addView(Switch(activity).apply {
+                                text = moduleRes.getString(R.string.KeepSSL)
+                                isChecked = sp.getBoolean("KeepSSL", false)
+                                setOnCheckedChangeListener { _, b ->
+                                    sp.edit().run {
+                                        putBoolean("KeepSSL", b)
+                                        apply()
+                                    }
                                 }
                             })
                         })

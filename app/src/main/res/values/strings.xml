@@ -9,8 +9,9 @@
     <string name="ProxyList">Only addresses in the proxy list (restart required)</string>
     <string name="EnableTools">Enable tools</string>
     <string name="HookConfig">Hook profile? (restart required)</string>
-    <string name="Tips2">Forced mode: Forced replacement of all domain names\n\nInput server address: </string>
+    <string name="Tips2">Forced mode: Forced replacement of all domain names\nInput server address: </string>
     <string name="Back">Back</string>
     <string name="ExitGames">Exit games</string>
     <string name="Settings">Settings</string>
+    <string name="KeepSSL">Skip SSL certificate check (instable) (restart required)</string>
 </resources>
