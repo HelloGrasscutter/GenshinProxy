@@ -151,7 +151,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
             forceUrl = sp.getBoolean("forceUrl", false)
             server = sp.getString("serverip", "") ?: ""
             proxyList = sp.getBoolean("ProxyList", false)
-            if (sp.getBoolean("KeepSSL", false)) sslHook(lpparam)
+            if (sp.getBoolean("KeepSSL", false)) sslHook()
         }
         hook()
         findMethod(Activity::class.java, true) { name == "onCreate" }.hookBefore { param ->
@@ -532,7 +532,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                                 val webview = loadClass("com.miHoYo.sdk.webview.MiHoYoWebview")
                                 webview.invokeStaticMethod("init", args(activity, "test_webview"), argTypes(Activity::class.java, String::class.java))
                                 webview.invokeStaticMethod("show", args("test_webview"), argTypes(String::class.java))
-                                webview.invokeStaticMethod("load", args("test_webview", "https://www.baidu.com"), argTypes(String::class.java, String::class.java))
+                                webview.invokeStaticMethod("load", args("test_webview", "https://www.fkj233.cn/gourl/"), argTypes(String::class.java, String::class.java))
                             }
                         })
                     })
@@ -565,7 +565,8 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         windowManager.addView(imageView, layoutParams)
     }
 
-    private fun sslHook(lpparam: XC_LoadPackage.LoadPackageParam) {
+    private fun sslHook() {
+        // OkHttp3 Hook
         findMethodOrNull("com.combosdk.lib.third.okhttp3.OkHttpClient\$Builder") { name == "build" }?.hookBefore {
             it.thisObject.invokeMethod("sslSocketFactory", args(getDefaultSSLSocketFactory()), argTypes(SSLSocketFactory::class.java))
             it.thisObject.invokeMethod("hostnameVerifier", args(getDefaultHostnameVerifier()), argTypes(HostnameVerifier::class.java))
@@ -574,6 +575,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
             it.thisObject.invokeMethod("sslSocketFactory", args(getDefaultSSLSocketFactory(), DefaultTrustManager()), argTypes(SSLSocketFactory::class.java, X509TrustManager::class.java))
             it.thisObject.invokeMethod("hostnameVerifier", args(getDefaultHostnameVerifier()), argTypes(HostnameVerifier::class.java))
         }
+        // WebView Hook
         arrayListOf(
             "android.webkit.WebViewClient",
             "cn.sharesdk.framework.g",
@@ -584,6 +586,25 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
             findMethodOrNull(it) { name == "onReceivedSslError" && parameterTypes[1] == SslErrorHandler::class.java }?.hookBefore { param ->
                 (param.args[1] as SslErrorHandler).proceed()
             }
+        }
+        // Android HttpsURLConnection Hook
+        findMethodOrNull("javax.net.ssl.HttpsURLConnection") { name == "getDefaultSSLSocketFactory" }?.hookBefore {
+            it.result = getDefaultSSLSocketFactory()
+        }
+        findMethodOrNull("javax.net.ssl.HttpsURLConnection") { name == "setSSLSocketFactory" }?.hookBefore {
+            it.result = null
+        }
+        findMethodOrNull("javax.net.ssl.HttpsURLConnection") { name == "setDefaultSSLSocketFactory" }?.hookBefore {
+            it.result = null
+        }
+        findMethodOrNull("javax.net.ssl.HttpsURLConnection") { name == "setHostnameVerifier" }?.hookBefore {
+            it.result = null
+        }
+        findMethodOrNull("javax.net.ssl.HttpsURLConnection") { name == "setDefaultHostnameVerifier" }?.hookBefore {
+            it.result = null
+        }
+        findMethodOrNull("javax.net.ssl.HttpsURLConnection") { name == "getDefaultHostnameVerifier" }?.hookBefore {
+            it.result = getDefaultHostnameVerifier()
         }
     }
 
