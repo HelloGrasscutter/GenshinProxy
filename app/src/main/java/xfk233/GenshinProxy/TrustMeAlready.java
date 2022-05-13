@@ -1,4 +1,4 @@
-package xfk233.GenshinProxy;
+package xfk233.genshinproxy;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;

@@ -1,4 +1,4 @@
-package xfk233.GenshinProxy
+package xfk233.genshinproxy
 
 import android.content.Context
 

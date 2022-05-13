@@ -1,4 +1,4 @@
-package xfk233.GenshinProxy
+package xfk233.genshinproxy
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -17,6 +17,7 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.webkit.SslErrorHandler
 import android.widget.*
 import com.github.kyuubiran.ezxhelper.init.EzXHelperInit
 import com.github.kyuubiran.ezxhelper.utils.*
@@ -26,8 +27,8 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import org.json.JSONObject
-import xfk233.GenshinProxy.Utils.dp2px
-import xfk233.GenshinProxy.Utils.isInit
+import xfk233.genshinproxy.Utils.dp2px
+import xfk233.genshinproxy.Utils.isInit
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
@@ -47,7 +48,6 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
     private lateinit var modulePath: String
     private lateinit var moduleRes: XModuleResources
     private lateinit var windowManager: WindowManager
-    private lateinit var activity: Activity
     private var proxyList = false
     private lateinit var sp: SharedPreferences
     private val proxyListRegex = arrayListOf(
@@ -85,16 +85,30 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         "log-upload-os.hoyoverse.com"
     )
 
-    private var socketFactory: SSLSocketFactory
-    private var verifier: DefaultHostnameVerifier
+    private val activityList: ArrayList<Activity> = arrayListOf()
+    private var activity: Activity
+        get() {
+            for (mActivity in activityList) {
+                if (mActivity.isFinishing) {
+                    activityList.remove(mActivity)
+                } else {
+                    return mActivity
+                }
+            }
+            throw Throwable("Activity not found.")
+        }
+        set(value) {
+            activityList.add(value)
+        }
 
-    init {
-        val ctx = SSLContext.getInstance("TLS")
-        ctx.init(arrayOf<KeyManager>(), arrayOf<TrustManager>(DefaultTrustManager()), SecureRandom())
-        ctx.clientSessionContext.sessionTimeout = 15
-        ctx.clientSessionContext.sessionCacheSize = 1000
-        socketFactory = ctx.socketFactory
-        verifier = DefaultHostnameVerifier()
+    private fun getDefaultSSLSocketFactory(): SSLSocketFactory {
+        return SSLContext.getInstance("TLS").apply {
+            init(arrayOf<KeyManager>(), arrayOf<TrustManager>(DefaultTrustManager()), SecureRandom())
+        }.socketFactory
+    }
+
+    private fun getDefaultHostnameVerifier(): HostnameVerifier {
+        return DefaultHostnameVerifier()
     }
 
     class DefaultHostnameVerifier : HostnameVerifier {
@@ -334,7 +348,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     })
                     addView(TextView(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).also {
-                            it.setMargins(0, 0, 20, 0)
+                            it.setMargins(0, 0, 5, 0)
                         }
                         setTextColor(Color.BLUE)
                         setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
@@ -362,8 +376,8 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                                         URL("$server/authentication/type").apply {
                                             val conn = if (server.startsWith("https")) {
                                                 (openConnection() as HttpsURLConnection).apply {
-                                                    sslSocketFactory = socketFactory
-                                                    hostnameVerifier = verifier
+                                                    sslSocketFactory = getDefaultSSLSocketFactory()
+                                                    hostnameVerifier = getDefaultHostnameVerifier()
                                                 }
                                             } else {
                                                 openConnection() as HttpURLConnection
@@ -452,8 +466,8 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                                         URL("$server/authentication/type").apply {
                                             val conn = if (server.startsWith("https")) {
                                                 (openConnection() as HttpsURLConnection).apply {
-                                                    sslSocketFactory = socketFactory
-                                                    hostnameVerifier = verifier
+                                                    sslSocketFactory = getDefaultSSLSocketFactory()
+                                                    hostnameVerifier = getDefaultHostnameVerifier()
                                                 }
                                             } else {
                                                 openConnection() as HttpURLConnection
@@ -509,6 +523,19 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                             }
                         })
                     })
+                    addView(LinearLayout(activity).apply {
+                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                        addView(Button(activity).apply {
+                            text = "Open WebView"
+                            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                            setOnClickListener {
+                                val webview = loadClass("com.miHoYo.sdk.webview.MiHoYoWebview")
+                                webview.invokeStaticMethod("init", args(activity, "test_webview"), argTypes(Activity::class.java, String::class.java))
+                                webview.invokeStaticMethod("show", args("test_webview"), argTypes(String::class.java))
+                                webview.invokeStaticMethod("load", args("test_webview", "https://www.baidu.com"), argTypes(String::class.java, String::class.java))
+                            }
+                        })
+                    })
                 })
             })
         }
@@ -526,6 +553,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
             y = 0
         }
         imageView = ImageView(activity).apply {
+            @Suppress("DEPRECATION")
             background = moduleRes.getDrawable(R.drawable.ic_android_black_24dp).also { it.alpha = 50 }
             this.layoutParams = layoutParams
             setOnTouchListener(MoveOnTouchListener())
@@ -538,13 +566,25 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
     }
 
     private fun sslHook(lpparam: XC_LoadPackage.LoadPackageParam) {
-        findMethodOrNull("com.combosdk.lib.third.okhttp3.internal.tls.OkHostnameVerifier") { name == "verify" }?.hookBefore {
-            it.result = true
+        findMethodOrNull("com.combosdk.lib.third.okhttp3.OkHttpClient\$Builder") { name == "build" }?.hookBefore {
+            it.thisObject.invokeMethod("sslSocketFactory", args(getDefaultSSLSocketFactory()), argTypes(SSLSocketFactory::class.java))
+            it.thisObject.invokeMethod("hostnameVerifier", args(getDefaultHostnameVerifier()), argTypes(HostnameVerifier::class.java))
         }
-        findMethodOrNull("com.combosdk.lib.third.okhttp3.CertificatePinner") { name == "check" && parameterTypes[0] == String::class.java && parameterTypes[1] == List::class.java }?.hookBefore {
-            it.result = null
+        findMethodOrNull("okhttp3.OkHttpClient\$Builder") { name == "build" }?.hookBefore {
+            it.thisObject.invokeMethod("sslSocketFactory", args(getDefaultSSLSocketFactory(), DefaultTrustManager()), argTypes(SSLSocketFactory::class.java, X509TrustManager::class.java))
+            it.thisObject.invokeMethod("hostnameVerifier", args(getDefaultHostnameVerifier()), argTypes(HostnameVerifier::class.java))
         }
-        JustTrustMe().hook(lpparam)
+        arrayListOf(
+            "android.webkit.WebViewClient",
+            "cn.sharesdk.framework.g",
+            "com.facebook.internal.WebDialog\$DialogWebViewClient",
+            "com.geetest.sdk.dialog.views.GtWebView\$c",
+            "com.miHoYo.sdk.webview.common.view.ContentWebView\$6"
+        ).forEach {
+            findMethodOrNull(it) { name == "onReceivedSslError" && parameterTypes[1] == SslErrorHandler::class.java }?.hookBefore { param ->
+                (param.args[1] as SslErrorHandler).proceed()
+            }
+        }
     }
 
     private fun hook() {

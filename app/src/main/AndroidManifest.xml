@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="xfk233.GenshinProxy">
+          package="xfk233.genshinproxy">
 
     <application
             android:allowBackup="true"
