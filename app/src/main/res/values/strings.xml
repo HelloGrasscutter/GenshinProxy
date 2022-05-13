@@ -13,7 +13,7 @@
     <string name="Back">Back</string>
     <string name="ExitGames">Exit games</string>
     <string name="Settings">Settings</string>
-    <string name="KeepSSL">Skip SSL certificate check (instable) (restart required)</string>
+    <string name="KeepSSL">Skip SSL certificate check (restart required)</string>
     <string name="CheckServerStatus">(Click Check server status)</string>
     <string name="ServerStatus">Server status:</string>
     <string name="NotInstall">not Install</string>

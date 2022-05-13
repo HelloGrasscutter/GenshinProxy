@@ -14,7 +14,7 @@
     <string name="Back">返回</string>
     <string name="ExitGames">退出游戏</string>
     <string name="Settings">设置</string>
-    <string name="KeepSSL">跳过SSL证书检查(不稳定)(需重启)</string>
+    <string name="KeepSSL">跳过SSL证书检查(需重启)</string>
     <string name="CheckServerStatus">(点击检查服务器状态)</string>
     <string name="ServerStatus">"服务器状态: "</string>
     <string name="NotInstall">未安装</string>
