@@ -16,7 +16,7 @@
     <string name="KeepSSL">Skip SSL certificate check (restart required)</string>
     <string name="CheckServerStatus">(Click Check server status)</string>
     <string name="ServerStatus">Server status:</string>
-    <string name="NotInstall">not Install</string>
+    <string name="NotInstall"> not Install</string>
     <string name="GetServerStatusError">Get server status error.</string>
     <string name="InputSwitch">Input switch</string>
     <string name="Login">Login</string>

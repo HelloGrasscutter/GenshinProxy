@@ -17,7 +17,7 @@
     <string name="KeepSSL">跳过SSL证书检查(需重启)</string>
     <string name="CheckServerStatus">(点击检查服务器状态)</string>
     <string name="ServerStatus">"服务器状态: "</string>
-    <string name="NotInstall">未安装</string>
+    <string name="NotInstall"> 未安装</string>
     <string name="GetServerStatusError">获取服务器状态错误.</string>
     <string name="InputSwitch">输入开关</string>
     <string name="Login">登录</string>
