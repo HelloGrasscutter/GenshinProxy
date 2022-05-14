@@ -7,13 +7,11 @@ import android.app.AlertDialog
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.content.res.XModuleResources
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RoundRectShape
-import android.os.Build
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
@@ -31,13 +29,11 @@ import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.callbacks.XC_LoadPackage
-import icu.nullptr.stringfuck.StringFuck
 import org.json.JSONObject
 import xfk233.genshinproxy.Utils.dp2px
 import xfk233.genshinproxy.Utils.isInit
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
@@ -142,7 +138,6 @@ class Hook {
     }
 
     fun initZygote(startupParam: IXposedHookZygoteInit.StartupParam) {
-        StringFuck.init()
         modulePath = startupParam.modulePath
         moduleRes = XModuleResources.createInstance(modulePath, null)
         TrustMeAlready().initZygote()
@@ -158,7 +153,6 @@ class Hook {
         EzXHelperInit.initHandleLoadPackage(lpparam)
         findMethod("com.combosdk.openapi.ComboApplication") { name == "attachBaseContext" }.hookBefore {
             val context = it.args[0] as Context
-            Utils.check(context, modulePath)
             sp = context.getSharedPreferences("serverConfig", 0)
             forceUrl = sp.getBoolean("forceUrl", false)
             startForceUrl = forceUrl
