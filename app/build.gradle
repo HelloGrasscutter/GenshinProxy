@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'top.niunaijun.blackobfuscator'
+    id 'icu.nullptr.stringfuck'
 }
 
 android {
@@ -8,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "xfk233.genshinproxy"
-        minSdk 27
+        minSdk 28
         targetSdk 32
         versionCode 5
         versionName "1.5"
@@ -16,8 +18,9 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', 'proguard-log.pro'
         }
     }
     compileOptions {
@@ -29,10 +32,23 @@ android {
     }
 }
 
+BlackObfuscator {
+    enabled true
+    depth 3
+    obfClass = ["xfk233.genshinproxy"]
+}
+
+stringFuck {
+    setKey "xfk2333"
+    obfuscationList ["xfk233.genshinproxy"]
+    workOnDebug true
+}
+
 dependencies {
     //API
     compileOnly 'de.robv.android.xposed:api:82'
     //带源码Api
     compileOnly 'de.robv.android.xposed:api:82:sources'
     implementation 'com.github.kyuubiran:EzXHelper:0.9.2'
+    implementation 'icu.nullptr.stringfuck:library:0.1.4'
 }
