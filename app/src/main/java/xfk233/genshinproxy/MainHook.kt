@@ -612,6 +612,12 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         findMethod("com.miHoYo.sdk.webview.MiHoYoWebview") { name == "load" && parameterTypes[0] == String::class.java && parameterTypes[1] == String::class.java }.hookBefore {
             replaceUrl(it, 1)
         }
+        findAllMethods("android.webkit.WebView") { name == "loadUrl" }.hookBefore {
+            replaceUrl(it, 0)
+        }
+        findAllMethods("android.webkit.WebView") { name == "postUrl" }.hookBefore {
+            replaceUrl(it, 0)
+        }
 
         findMethod("okhttp3.HttpUrl") { name == "parse" && parameterTypes[0] == String::class.java }.hookBefore {
             replaceUrl(it, 0)
