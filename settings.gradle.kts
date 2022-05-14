@@ -7,4 +7,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "GenshinProxy"
-include ':app'
+include(":app")

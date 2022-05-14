@@ -297,7 +297,7 @@ class Hook {
                         runOnMainThread {
                             dialog.visibility = View.VISIBLE
                         }
-                        Thread.sleep(10 * 1000)
+                        Thread.sleep(15000)
                         runOnMainThread {
                             dialog.visibility = View.GONE
                             activity.windowManager.removeView(dialog)
