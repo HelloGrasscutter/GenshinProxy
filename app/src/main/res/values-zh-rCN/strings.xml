@@ -27,4 +27,5 @@
     <string name="LoginFailed">登录失败.</string>
     <string name="LoginError">登录错误.</string>
     <string name="Tools">工具</string>
+    <string name="JoinServerError">强制代理或代理列表已启用, 无法进入正式服务器.</string>
 </resources>

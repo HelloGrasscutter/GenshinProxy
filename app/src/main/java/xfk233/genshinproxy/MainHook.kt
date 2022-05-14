@@ -141,6 +141,9 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         TrustMeAlready().initZygote(startupParam)
     }
 
+    private var startForceUrl = false
+    private var startProxyList = false
+
     @SuppressLint("WrongConstant", "ClickableViewAccessibility")
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName != "com.miHoYo.GenshinImpact") return
@@ -149,8 +152,10 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
             val context = it.args[0] as Context
             sp = context.getSharedPreferences("serverConfig", 0)
             forceUrl = sp.getBoolean("forceUrl", false)
+            startForceUrl = forceUrl
             server = sp.getString("serverip", "") ?: ""
             proxyList = sp.getBoolean("ProxyList", false)
+            startProxyList = proxyList
             if (sp.getBoolean("KeepSSL", false)) sslHook()
         }
         hook()
@@ -271,6 +276,10 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
             setNeutralButton(moduleRes.getString(R.string.OfficialServer)) { _, _ ->
                 forceUrl = false
                 server = ""
+                if (startForceUrl || startProxyList) {
+                    Toast.makeText(activity, moduleRes.getString(R.string.JoinServerError), Toast.LENGTH_LONG).show()
+                    showDialog()
+                }
             }
         }.show()
     }

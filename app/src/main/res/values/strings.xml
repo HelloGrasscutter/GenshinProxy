@@ -26,4 +26,7 @@
     <string name="LoginFailed">Login failed.</string>
     <string name="LoginError">Login error.</string>
     <string name="Tools">Tools</string>
+    <string name="JoinServerError">The force proxy or proxy list has been enabled and cannot enter the official
+        server.
+    </string>
 </resources>
