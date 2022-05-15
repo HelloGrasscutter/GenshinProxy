@@ -67,7 +67,7 @@ fun getKey(project: Project): ByteArray {
 stringFuck {
     key = getKey(rootProject)
     isPrintDebugInfo = false
-    isWorkOnDebug = true
+    isWorkOnDebug = false
     isWhiteList = false
     obfuscationList = setOf("xfk233.genshinproxy")
 }

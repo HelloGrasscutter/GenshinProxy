@@ -1,6 +1,5 @@
 package xfk233.genshinproxy
 
-
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
@@ -173,14 +172,15 @@ class Hook {
                 visibility = View.GONE
                 background = ShapeDrawable().apply {
                     shape = RoundRectShape(floatArrayOf(18f, 18f, 18f, 18f, 18f, 18f, 18f, 18f), null, null)
-                    paint.color = Color.parseColor("#FFEFEDF5")
+                    paint.color = Color.parseColor("#DFEFEDF5")
                 }
                 addView(TextView(activity).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).also {
                         it.gravity = Gravity.CENTER_VERTICAL
                     }
+                    setPadding(10, 10, 10, 10)
                     gravity = Gravity.CENTER
-                    text = String(Base64.decode("5pys5qih5Z2X5piv5YWN6LS55bm25byA5rqQ55qELCDlpoLmnpzkvaDmmK/otK3kubDnmoTmraTmqKHlnZfmiJbova/ku7bjgIJcbumCo+S5iOS9oOiiq+mql+S6hu+8jOivt+mAgOasvivlt67or4TvvIFcblRoaXMgbW9kdWxlIGlzIGZyZWUgYW5kIG9wZW4gc291cmNlLCBpZiB5b3UgcHVyY2hhc2VkIHRoaXMgbW9kdWxlIG9yIHNvZnR3YXJlLlxuVGhlbiB5b3UgaGF2ZSBiZWVuIGNoZWF0ZWQsIHBsZWFzZSByZWZ1bmQh", Base64.DEFAULT)).replace("\\n", "\n")
+                    text = String(Base64.decode("5pys5qih5Z2X5piv5YWN6LS555qELCDlpoLmnpzkvaDmmK/otK3kubDnmoTmraTmqKHlnZfmiJbova/ku7bjgIJcbumCo+S5iOS9oOiiq+mql+S6hu+8jOivt+mAgOasvivlt67or4TvvIFcblRoaXMgbW9kdWxlIGlzIGZyZWUsIGlmIHlvdSBwdXJjaGFzZWQgdGhpcyBtb2R1bGUgb3Igc29mdHdhcmUuXG5UaGVuIHlvdSBoYXZlIGJlZW4gY2hlYXRlZCwgcGxlYXNlIHJlZnVuZCE=", Base64.DEFAULT)).replace("\\n", "\n")
                 })
             }, WindowManager.LayoutParams(dp2px(activity, 200f), dp2px(activity, 150f), WindowManager.LayoutParams.TYPE_APPLICATION, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT).apply {
                 gravity = Gravity.CENTER_VERTICAL
@@ -377,19 +377,27 @@ class Hook {
             addView(LinearLayout(activity).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
-                setBackgroundColor(Color.parseColor("#5F000000"))
+                background = ShapeDrawable().apply {
+                    shape = RoundRectShape(floatArrayOf(18f, 18f, 18f, 18f, 18f, 18f, 18f, 18f), null, null)
+                    paint.color = Color.parseColor("#5FEFEDF5")
+                }
                 addView(LinearLayout(activity).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                    setBackgroundColor(Color.parseColor("#8F000000"))
+                    background = ShapeDrawable().apply {
+                        shape = RoundRectShape(floatArrayOf(18f, 18f, 18f, 18f, 0f, 0f, 0f, 0f), null, null)
+                        paint.color = Color.parseColor("#8FEFEDF5")
+                    }
                     addView(TextView(activity).apply {
-                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).also {
+                            it.setMargins(15, 0, 0, 0)
+                        }
                         setTextColor(Color.BLUE)
                         setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
                         text = moduleRes.getString(R.string.Tools)
                     })
                     addView(TextView(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).also {
-                            it.setMargins(0, 0, 5, 0)
+                            it.setMargins(15, 0, 10, 0)
                         }
                         setTextColor(Color.BLUE)
                         setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
@@ -401,6 +409,7 @@ class Hook {
                     })
                 })
                 addView(LinearLayout(activity).apply {
+                    setPadding(20, 5, 20, 20)
                     orientation = LinearLayout.VERTICAL
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
                     var userEdit: EditText
@@ -455,6 +464,7 @@ class Hook {
                     addView(LinearLayout(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                         addView(Switch(activity).apply {
+                            setTextColor(Color.BLUE)
                             text = moduleRes.getString(R.string.InputSwitch)
                             setOnCheckedChangeListener { _, b ->
                                 if (b) {
@@ -500,7 +510,13 @@ class Hook {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                         addView(Button(activity).apply {
                             text = moduleRes.getString(R.string.Login)
-                            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                            background = ShapeDrawable().apply {
+                                shape = RoundRectShape(floatArrayOf(18f, 18f, 18f, 18f, 18f, 18f, 18f, 18f), null, null)
+                                paint.color = Color.parseColor("#95EFEDF5")
+                            }
+                            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).also {
+                                it.setMargins(0, 10, 0, 20)
+                            }
                             setOnClickListener {
                                 Thread {
                                     try {
@@ -568,7 +584,11 @@ class Hook {
                     addView(LinearLayout(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                         addView(Button(activity).apply {
-                            text = "Open WebView"
+                            text = moduleRes.getString(R.string.OpenWebview)
+                            background = ShapeDrawable().apply {
+                                shape = RoundRectShape(floatArrayOf(18f, 18f, 18f, 18f, 18f, 18f, 18f, 18f), null, null)
+                                paint.color = Color.parseColor("#95EFEDF5")
+                            }
                             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                             setOnClickListener {
                                 val webview = loadClass("com.miHoYo.sdk.webview.MiHoYoWebview")
@@ -582,12 +602,13 @@ class Hook {
             })
         }
 
-        windowManager = activity.windowManager
-        windowManager.addView(mainView, WindowManager.LayoutParams(dp2px(activity, 200f), WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.TYPE_APPLICATION, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT).apply {
+        val mainParams = WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.TYPE_APPLICATION, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT).apply {
             gravity = Gravity.START or Gravity.TOP
-            x = 0
-            y = 0
-        })
+            x = 50
+            y = 100
+        }
+        windowManager = activity.windowManager
+        windowManager.addView(mainView.also { it.layoutParams = mainParams }, mainParams)
 
         val layoutParams = WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_APPLICATION, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT).apply {
             gravity = Gravity.START or Gravity.TOP

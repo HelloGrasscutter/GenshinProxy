@@ -29,4 +29,5 @@
     <string name="JoinServerError">The force proxy or proxy list has been enabled and cannot enter the official
         server.
     </string>
+    <string name="OpenWebview">Open webview</string>
 </resources>
