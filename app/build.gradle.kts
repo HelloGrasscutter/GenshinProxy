@@ -56,7 +56,7 @@ BlackObfuscator {
 }
 
 fun getKey(project: Project): ByteArray {
-    val keyFile = File(project.rootProject.projectDir, "signingKey.jks")
+    val keyFile = File(project.rootProject.projectDir, "genshin.jks")
     if (keyFile.exists() && keyFile.canRead()) {
         return keyFile.readBytes()
     }

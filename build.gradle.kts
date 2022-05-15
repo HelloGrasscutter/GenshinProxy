@@ -1,10 +1,10 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
-//        maven {
-//            setUrl("http://192.168.1.5:8081/repository/maven-public/")
-//            isAllowInsecureProtocol = true
-//        }
+        maven {
+            setUrl("http://192.168.1.5:8081/repository/maven-public/")
+            isAllowInsecureProtocol = true
+        }
         google()
         mavenCentral()
         maven("https://api.xposed.info")
