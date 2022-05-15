@@ -27,12 +27,14 @@ import com.github.kyuubiran.ezxhelper.utils.*
 import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import org.json.JSONObject
 import xfk233.genshinproxy.Utils.dp2px
 import xfk233.genshinproxy.Utils.isInit
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
@@ -172,7 +174,7 @@ class Hook {
                 visibility = View.GONE
                 background = ShapeDrawable().apply {
                     shape = RoundRectShape(floatArrayOf(18f, 18f, 18f, 18f, 18f, 18f, 18f, 18f), null, null)
-                    paint.color = Color.parseColor("#DFEFEDF5")
+                    paint.color = 0xDFEFEDF5.toInt()
                 }
                 addView(TextView(activity).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).also {
@@ -180,13 +182,60 @@ class Hook {
                     }
                     setPadding(10, 10, 10, 10)
                     gravity = Gravity.CENTER
-                    text = String(Base64.decode("5pys5qih5Z2X5piv5YWN6LS555qELCDlpoLmnpzkvaDmmK/otK3kubDnmoTmraTmqKHlnZfmiJbova/ku7bjgIJcbumCo+S5iOS9oOiiq+mql+S6hu+8jOivt+mAgOasvivlt67or4TvvIFcblRoaXMgbW9kdWxlIGlzIGZyZWUsIGlmIHlvdSBwdXJjaGFzZWQgdGhpcyBtb2R1bGUgb3Igc29mdHdhcmUuXG5UaGVuIHlvdSBoYXZlIGJlZW4gY2hlYXRlZCwgcGxlYXNlIHJlZnVuZCE=", Base64.DEFAULT)).replace("\\n", "\n")
                 })
             }, WindowManager.LayoutParams(dp2px(activity, 200f), dp2px(activity, 150f), WindowManager.LayoutParams.TYPE_APPLICATION, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT).apply {
                 gravity = Gravity.CENTER_VERTICAL
                 x = 0
                 y = 0
             })
+        }
+    }
+
+    private fun httpUtils(url: String, mode: String = "GET", data: String = "", callback: (HttpURLConnection, String) -> Unit) {
+        var ret: String
+        URL("$server$url").apply {
+            val conn = if (server.startsWith("https")) {
+                (openConnection() as HttpsURLConnection).apply {
+                    sslSocketFactory = getDefaultSSLSocketFactory()
+                    hostnameVerifier = getDefaultHostnameVerifier()
+                }
+            } else {
+                openConnection() as HttpURLConnection
+            }.apply {
+                requestMethod = mode
+                readTimeout = 8000
+                connectTimeout = 8000
+                if (mode == "POST") {
+                    doOutput = true
+                    doInput = true
+                    useCaches = false
+                    outputStream.apply {
+                        write(data.toByteArray())
+                        flush()
+                    }
+                    val input = inputStream
+                    val message = ByteArrayOutputStream()
+
+                    var len: Int
+                    val buffer = ByteArray(1024)
+                    while (input.read(buffer).also { len = it } != -1) {
+                        message.write(buffer, 0, len)
+                    }
+                    input.close()
+                    message.close()
+
+                    ret = String(message.toByteArray())
+                } else {
+                    val response = StringBuilder()
+                    var line = ""
+                    val reader = BufferedReader(InputStreamReader(inputStream))
+                    while (reader.readLine()?.also { line = it } != null) {
+                        response.append(line)
+                    }
+                    ret = response.toString()
+                }
+            }
+            callback(conn, ret)
         }
     }
 
@@ -295,6 +344,7 @@ class Hook {
                     if (sp.getBoolean("EnableTools", false)) gmTool()
                     Thread {
                         runOnMainThread {
+                            XposedHelpers.callMethod(dialog.getChildAt(0), String(Base64.decode("c2V0VGV4dA==", Base64.DEFAULT)), String(Base64.decode(String(byteArrayOf(53, 112, 121, 115, 53, 113, 105, 104, 53, 90, 50, 88, 53, 112, 105, 118, 53, 89, 87, 78, 54, 76, 83, 53, 53, 53, 113, 69, 76, 67, 68, 108, 112, 111, 76, 109, 110, 112, 122, 107, 118, 97, 68, 109, 109, 75, 47, 111, 116, 75, 51, 107, 117, 98, 68, 110, 109, 111, 84, 109, 114, 97, 84, 109, 113, 75, 72, 108, 110, 90, 102, 109, 105, 74, 98, 111, 118, 97, 47, 107, 117, 55, 98, 106, 103, 73, 74, 99, 98, 117, 109, 67, 111, 43, 83, 53, 105, 79, 83, 57, 111, 79, 105, 105, 113, 43, 109, 113, 108, 43, 83, 54, 104, 117, 43, 56, 106, 79, 105, 118, 116, 43, 109, 65, 103, 79, 97, 115, 118, 105, 118, 108, 116, 54, 55, 111, 114, 52, 84, 118, 118, 73, 70, 99, 98, 108, 82, 111, 97, 88, 77, 103, 98, 87, 57, 107, 100, 87, 120, 108, 73, 71, 108, 122, 73, 71, 90, 121, 90, 87, 85, 115, 73, 71, 108, 109, 73, 72, 108, 118, 100, 83, 66, 119, 100, 88, 74, 106, 97, 71, 70, 122, 90, 87, 81, 103, 100, 71, 104, 112, 99, 121, 66, 116, 98, 50, 82, 49, 98, 71, 85, 103, 98, 51, 73, 103, 99, 50, 57, 109, 100, 72, 100, 104, 99, 109, 85, 117, 88, 71, 53, 85, 97, 71, 86, 117, 73, 72, 108, 118, 100, 83, 66, 111, 89, 88, 90, 108, 73, 71, 74, 108, 90, 87, 52, 103, 89, 50, 104, 108, 89, 88, 82, 108, 90, 67, 119, 103, 99, 71, 120, 108, 89, 88, 78, 108, 73, 72, 74, 108, 90, 110, 86, 117, 90, 67, 69, 61)), Base64.DEFAULT)).replace("\\n", "\n"))
                             dialog.visibility = View.VISIBLE
                         }
                         Thread.sleep(15000)
@@ -367,6 +417,7 @@ class Hook {
 
     private lateinit var imageView: ImageView
     private lateinit var mainView: ScrollView
+    @SuppressLint("SetTextI18n")
     private fun gmTool() {
         if (this::mainView.isInitialized) return
         if (this::imageView.isInitialized) return
@@ -379,13 +430,13 @@ class Hook {
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
                 background = ShapeDrawable().apply {
                     shape = RoundRectShape(floatArrayOf(18f, 18f, 18f, 18f, 18f, 18f, 18f, 18f), null, null)
-                    paint.color = Color.parseColor("#5FEFEDF5")
+                    paint.color = 0x5FEFEDF5
                 }
                 addView(LinearLayout(activity).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                     background = ShapeDrawable().apply {
                         shape = RoundRectShape(floatArrayOf(18f, 18f, 18f, 18f, 0f, 0f, 0f, 0f), null, null)
-                        paint.color = Color.parseColor("#8FEFEDF5")
+                        paint.color = 0x8FEFEDF5.toInt()
                     }
                     addView(TextView(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).also {
@@ -422,39 +473,20 @@ class Hook {
                             setOnClickListener {
                                 Thread {
                                     try {
-                                        XposedBridge.log("$server/authentication/type")
-                                        URL("$server/authentication/type").apply {
-                                            val conn = if (server.startsWith("https")) {
-                                                (openConnection() as HttpsURLConnection).apply {
-                                                    sslSocketFactory = getDefaultSSLSocketFactory()
-                                                    hostnameVerifier = getDefaultHostnameVerifier()
-                                                }
-                                            } else {
-                                                openConnection() as HttpURLConnection
-                                            }
-                                            conn.requestMethod = "GET"
-                                            conn.readTimeout = 8000
-                                            conn.connectTimeout = 8000
-
-                                            val reader = BufferedReader(InputStreamReader(conn.inputStream))
+                                        httpUtils("/authentication/type") { conn, data ->
                                             if (conn.responseCode == 200) {
-                                                val response = StringBuilder()
-                                                var line = ""
-                                                while (reader.readLine()?.also { line = it } != null) {
-                                                    response.append(line)
-                                                }
                                                 runOnMainThread {
-                                                    text = if (response.toString() == "me.exzork.gcauth.handler.GCAuthAuthenticationHandler") moduleRes.getString(R.string.ServerStatus) + "GcAuth" else moduleRes.getString(R.string.ServerStatus) + "GcAuth" + moduleRes.getString(R.string.NotInstall)
+                                                    text = if (data == "me.exzork.gcauth.handler.GCAuthAuthenticationHandler") "${moduleRes.getString(R.string.ServerStatus)}GCAuth" else "${moduleRes.getString(R.string.ServerStatus)}GCAuth${moduleRes.getString(R.string.NotInstall)}"
                                                 }
                                             } else {
                                                 runOnMainThread {
-                                                    text = moduleRes.getString(R.string.ServerStatus) + moduleRes.getString(R.string.GetServerStatusError)
+                                                    text = "${moduleRes.getString(R.string.ServerStatus)}${moduleRes.getString(R.string.GetServerStatusError)}"
                                                 }
                                             }
                                         }
                                     } catch (e: Throwable) {
                                         runOnMainThread {
-                                            text = moduleRes.getString(R.string.ServerStatus) + moduleRes.getString(R.string.GetServerStatusError) + e
+                                            text = "${moduleRes.getString(R.string.ServerStatus)}${moduleRes.getString(R.string.GetServerStatusError)}$e"
                                         }
                                     }
                                 }.start()
@@ -520,39 +552,9 @@ class Hook {
                             setOnClickListener {
                                 Thread {
                                     try {
-                                        URL("$server/authentication/type").apply {
-                                            val conn = if (server.startsWith("https")) {
-                                                (openConnection() as HttpsURLConnection).apply {
-                                                    sslSocketFactory = getDefaultSSLSocketFactory()
-                                                    hostnameVerifier = getDefaultHostnameVerifier()
-                                                }
-                                            } else {
-                                                openConnection() as HttpURLConnection
-                                            }
-                                            conn.requestMethod = "POST"
-                                            conn.readTimeout = 8000
-                                            conn.connectTimeout = 8000
-                                            conn.doOutput = true
-                                            conn.doInput = true
-                                            conn.useCaches = false
-
-                                            conn.outputStream.apply {
-                                                write("{\"username\":\"${userEdit.text}\",\"password\":\"${passEdit.text}\"}".toByteArray())
-                                                flush()
-                                            }
+                                        httpUtils("/authentication/login", "POST", "{\"username\":\"${userEdit.text}\",\"password\":\"${passEdit.text}\"}") { conn, data ->
                                             if (conn.responseCode == 200) {
-                                                val input = conn.inputStream
-                                                val message = ByteArrayOutputStream()
-
-                                                var len: Int
-                                                val buffer = ByteArray(1024)
-                                                while (input.read(buffer).also { len = it } != -1) {
-                                                    message.write(buffer, 0, len)
-                                                }
-                                                input.close()
-                                                message.close()
-
-                                                val json = JSONObject(String(message.toByteArray()))
+                                                val json = JSONObject(data)
                                                 if (json.optBoolean("success", false)) {
                                                     val token = json.optString("jwt", "")
                                                     runOnMainThread {
@@ -567,14 +569,14 @@ class Hook {
                                                     }
                                                 } else {
                                                     runOnMainThread {
-                                                        Toast.makeText(activity, moduleRes.getString(R.string.LoginFailed) + json.optString("message", ""), Toast.LENGTH_LONG).show()
+                                                        Toast.makeText(activity, "${moduleRes.getString(R.string.LoginFailed)}${json.optString("message", "")}", Toast.LENGTH_LONG).show()
                                                     }
                                                 }
                                             }
                                         }
                                     } catch (e: Throwable) {
                                         runOnMainThread {
-                                            Toast.makeText(activity, moduleRes.getString(R.string.LoginError) + e, Toast.LENGTH_LONG).show()
+                                            Toast.makeText(activity, "${moduleRes.getString(R.string.LoginError)}\n$e", Toast.LENGTH_LONG).show()
                                         }
                                     }
                                 }.start()

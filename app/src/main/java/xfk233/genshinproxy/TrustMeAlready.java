@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 

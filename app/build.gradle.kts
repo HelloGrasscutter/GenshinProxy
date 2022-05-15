@@ -2,7 +2,6 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("top.niunaijun.blackobfuscator")
-    id("icu.nullptr.stringfuck")
 }
 
 android {
@@ -12,8 +11,8 @@ android {
         applicationId = "xfk233.genshinproxy"
         minSdk = 28
         targetSdk = 32
-        versionCode = 5
-        versionName = "1.5"
+        versionCode = 6
+        versionName = "1.6"
     }
 
     buildTypes {
@@ -44,7 +43,7 @@ android {
     applicationVariants.all {
         outputs.all {
             (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                "GenshinProxy-$versionName($versionCode)-$name.apk"
+                "GenshinProxy-$name.apk"
         }
     }
 }
@@ -55,26 +54,17 @@ BlackObfuscator {
     setObfClass("xfk233.genshinproxy")
 }
 
-fun getKey(project: Project): ByteArray {
+fun getKey(project: Project): String {
     val keyFile = File(project.rootProject.projectDir, "genshin.jks")
     if (keyFile.exists() && keyFile.canRead()) {
-        return keyFile.readBytes()
+        return keyFile.readText()
     }
     println("Key not found!")
-    return "xfk2333".encodeToByteArray()
-}
-
-stringFuck {
-    key = getKey(rootProject)
-    isPrintDebugInfo = false
-    isWorkOnDebug = false
-    isWhiteList = false
-    obfuscationList = setOf("xfk233.genshinproxy")
+    return "xfk2333"
 }
 
 dependencies {
     compileOnly("de.robv.android.xposed:api:82")
     compileOnly("de.robv.android.xposed:api:82:sources")
     implementation("com.github.kyuubiran:EzXHelper:0.9.2")
-    implementation("icu.nullptr.stringfuck:library:0.2.2")
 }
