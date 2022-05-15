@@ -5,7 +5,6 @@ import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import icu.nullptr.stringfuck.StringFuck
 
-
 class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
     private val hook: Hook
 

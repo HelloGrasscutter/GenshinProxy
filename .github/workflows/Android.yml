@@ -30,6 +30,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Create key file
+        run: echo -n "${{ secrets.SIGNING_KEY }}" | base64 -d > signingKey.jks
+
       - name: Build with Gradle
         run: |
           bash ./gradlew assembleRelease

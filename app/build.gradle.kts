@@ -30,6 +30,23 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.majorVersion
     }
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/**"
+            excludes += "/kotlin/**"
+            excludes += "/*.txt"
+            excludes += "/*.bin"
+        }
+        dex {
+            useLegacyPackaging = true
+        }
+    }
+    applicationVariants.all {
+        outputs.all {
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+                "GenshinProxy-$versionName($versionCode)-$name.apk"
+        }
+    }
 }
 
 BlackObfuscator {
@@ -38,8 +55,17 @@ BlackObfuscator {
     setObfClass("xfk233.genshinproxy")
 }
 
+fun getKey(project: Project): ByteArray {
+    val keyFile = File(project.rootProject.projectDir, "signingKey.jks")
+    if (keyFile.exists() && keyFile.canRead()) {
+        return keyFile.readBytes()
+    }
+    println("Key not found!")
+    return "xfk2333".encodeToByteArray()
+}
+
 stringFuck {
-    setKey("xfk233")
+    key = getKey(rootProject)
     isPrintDebugInfo = false
     isWorkOnDebug = true
     isWhiteList = false
