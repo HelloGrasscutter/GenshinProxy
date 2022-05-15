@@ -11,8 +11,8 @@ android {
         applicationId = "xfk233.genshinproxy"
         minSdk = 28
         targetSdk = 32
-        versionCode = 6
-        versionName = "1.6"
+        versionCode = 7
+        versionName = "1.7"
     }
 
     buildTypes {
